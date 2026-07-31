@@ -49,7 +49,7 @@ The module follows this recommendation.
 
 - **syntax**: `security_headers on | off;`
 - **default**: `security_headers off;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Enables or disables applying security headers (`Strict-Transport-Security` is not included). The default set includes:
 
@@ -64,7 +64,7 @@ The values of these headers (or their inclusion) can be controlled with other `s
 
 - **syntax**: `security_headers_x_xss_protection off | on | block | clear | bypass;`
 - **default**: `security_headers_x_xss_protection off;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Controls `X-XSS-Protection` header. 
 The `off` value is for disabling XSS protection: `X-XSS-Protection: 0`.
@@ -80,7 +80,7 @@ The `bypass` value is for disabling adding or rewriting the header by the module
 
 - **syntax**: `security_headers_x_frame_options sameorigin | deny | clear | bypass;`
 - **default**: `security_headers_x_frame_options sameorigin;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Controls inclusion and value of `X-Frame-Options` header. 
 Special `bypass` value will disable adding or rewriting the header by the module.
@@ -90,7 +90,7 @@ Special `bypass` value will disable adding or rewriting the header by the module
 
 - **syntax**: `security_headers_referrer_policy strict-origin-when-cross-origin | no-referrer | no-referrer-when-downgrade | origin | origin-when-cross-origin | same-origin | strict-origin | unsafe-url | clear | bypass;`
 - **default**: `security_headers_referrer_policy strict-origin-when-cross-origin;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Controls inclusion and value of [`Referrer-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) header. 
 Special `clear` value will clear the header.
@@ -100,7 +100,7 @@ Special `bypass` value will disable adding or rewriting the header by the module
 
 - **syntax**: `security_headers_x_content_type_options nosniff | clear | bypass;`
 - **default**: `security_headers_x_content_type_options nosniff;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Controls inclusion and value of `X-Content-Type-Options` header.
 Special `clear` value will clear the header.
@@ -118,7 +118,7 @@ Controls which mine types need to send security headers. But the `Strict-Transpo
 
 - **syntax**: `hsts on | bypass | clear;`
 - **default**: `hsts bypass;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Controls `Strict-Transport-Security` header. This directive takes effect independently and is not controlled by the `security_headers` directive.
 The `on` value is for enabling `Strict-Transport-Security` header.
@@ -130,7 +130,7 @@ Special `bypass` value will disable adding or rewriting the header by the module
 
 - **syntax**: `hsts_max_age time;`
 - **default**: `hsts_max_age 31536000s;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Sets the value of the `max-age` parameter in the `Strict-Transport-Security` header.
 
@@ -139,7 +139,7 @@ Sets the value of the `max-age` parameter in the `Strict-Transport-Security` hea
 
 - **syntax**: `hsts_includesubdomains on | off;`
 - **default**: `hsts_includesubdomains off;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Enable or disable the `includeSubDomains` parameter in the `Strict-Transport-Security` header.
 
@@ -148,7 +148,7 @@ Enable or disable the `includeSubDomains` parameter in the `Strict-Transport-Sec
 
 - **syntax**: `hsts_preload on | off;`
 - **default**: `hsts_preload off;`
-- **context**: `http`, `server`, `location`
+- **context**: `http`, `server`, `location`, `when`
 
 Enable or disable the `preload` parameter in the `Strict-Transport-Security` header.
 This means Chrome may and will include your websites to its preload list of domains which are HTTPS only.

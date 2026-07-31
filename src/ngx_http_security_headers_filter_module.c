@@ -7,6 +7,9 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 #include <ngx_string.h>
+#if (NGX_CONDITION)
+#include <ngx_http_condition_module.h>
+#endif
 
 
 #define NGX_HTTP_SECURITY_HEADER_BYPASS              0
@@ -34,6 +37,20 @@
 
 
 typedef struct {
+#if (NGX_CONDITION)
+#if (NGX_HTTP_SSL)
+    ngx_array_t               *hsts;
+    ngx_array_t               *hsts_includesubdomains;
+    ngx_array_t               *hsts_preload;
+    ngx_array_t               *hsts_max_age;
+#endif
+
+    ngx_array_t               *enable;
+    ngx_array_t               *xss;
+    ngx_array_t               *fo;
+    ngx_array_t               *rp;
+    ngx_array_t               *xo;
+#else
 #if (NGX_HTTP_SSL)
     ngx_uint_t                 hsts;
     ngx_flag_t                 hsts_includesubdomains;
@@ -46,10 +63,10 @@ typedef struct {
     ngx_uint_t                 fo;
     ngx_uint_t                 rp;
     ngx_uint_t                 xo;
+#endif
 
     ngx_hash_t                 types;
     ngx_array_t               *types_keys;
-
 } ngx_http_security_headers_loc_conf_t;
 
 
@@ -149,65 +166,146 @@ static ngx_command_t  ngx_http_security_headers_commands[] = {
 
 #if (NGX_HTTP_SSL)
     { ngx_string("hsts"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_FLAG,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_enum_slot,
+#else
       ngx_conf_set_enum_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, hsts),
       &ngx_http_hsts },
 
     { ngx_string("hsts_max_age"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_FLAG,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_sec_slot,
+#else
       ngx_conf_set_sec_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, hsts_max_age),
       NULL },
 
     { ngx_string("hsts_includesubdomains"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_FLAG,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_flag_slot,
+#else
       ngx_conf_set_flag_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, hsts_includesubdomains),
       NULL },
 
     { ngx_string("hsts_preload"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_FLAG,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_flag_slot,
+#else
       ngx_conf_set_flag_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, hsts_preload),
       NULL },
 #endif
 
     { ngx_string("security_headers"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_FLAG,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_FLAG,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_flag_slot,
+#else
       ngx_conf_set_flag_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, enable),
       NULL },
 
     { ngx_string("security_headers_x_xss_protection"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_TAKE1,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_enum_slot,
+#else
       ngx_conf_set_enum_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, xss),
       &ngx_http_x_xss_protection },
 
      { ngx_string("security_headers_x_frame_options"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_TAKE1,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_enum_slot,
+#else
       ngx_conf_set_enum_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, fo),
       &ngx_http_x_frame_options },
 
     { ngx_string("security_headers_referrer_policy"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_TAKE1,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_enum_slot,
+#else
       ngx_conf_set_enum_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, rp),
       &ngx_http_referrer_policy },
 
     { ngx_string("security_headers_x_content_type_options"),
-      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF
+#if (NGX_CONDITION)
+                        |NGX_HTTP_MAIN_WHEN_CONF|NGX_HTTP_SRV_WHEN_CONF
+                        |NGX_HTTP_LOC_WHEN_CONF
+#endif
+                        |NGX_CONF_TAKE1,
+#if (NGX_CONDITION)
+      ngx_conf_set_conditional_enum_slot,
+#else
       ngx_conf_set_enum_slot,
+#endif
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_security_headers_loc_conf_t, xo),
       &ngx_http_x_content_type_options },
@@ -266,30 +364,67 @@ ngx_http_security_headers_filter(ngx_http_request_t *r)
 
     ngx_str_t          key;
     ngx_str_t          val;
+#if (NGX_HTTP_SSL)
     u_char             buf[128];
     u_char            *p;
+#endif
+#if (NGX_CONDITION)
+    ngx_flag_t                           enable;
+    ngx_uint_t                           xss, fo, rp, xo;
+#if (NGX_HTTP_SSL)
+    time_t                               hsts_max_age;
+    ngx_flag_t                           hsts_includesubdomains, hsts_preload;
+    ngx_uint_t                           hsts;
+#endif
+#endif
 
     slcf = ngx_http_get_module_loc_conf(r,
                                       ngx_http_security_headers_filter_module);
 
 #if (NGX_HTTP_SSL)
 
+#if (NGX_CONDITION)
+    hsts = ngx_http_get_conditional_enum_value(r, slcf->hsts);
+    hsts_max_age = ngx_http_get_conditional_sec_value(r, slcf->hsts_max_age);
+    hsts_includesubdomains = ngx_http_get_conditional_flag_value(r,
+                                 slcf->hsts_includesubdomains);
+    hsts_preload = ngx_http_get_conditional_flag_value(r,
+                       slcf->hsts_preload);
+
+    if (hsts == NGX_HTTP_SECURITY_HEADER_BYPASS) {
+#else
     if (slcf->hsts == NGX_HTTP_SECURITY_HEADER_BYPASS) {
+#endif
         goto security_headers;
     }
 
     ngx_str_set(&key, "Strict-Transport-Security");
 
+#if (NGX_CONDITION)
+    if (hsts == NGX_HTTP_HSTS_ON && r->connection->ssl) {
+#else
     if (slcf->hsts == NGX_HTTP_HSTS_ON && r->connection->ssl) {
+#endif
         p = buf;
+#if (NGX_CONDITION)
+        p = ngx_snprintf(p, buf + sizeof(buf) - p, "max-age=%T",
+            hsts_max_age);
+
+        if (hsts_includesubdomains == 1) {
+#else
         p = ngx_snprintf(p, buf + sizeof(buf) - p, "max-age=%T",
             slcf->hsts_max_age);
 
         if (slcf->hsts_includesubdomains == 1) {
+#endif
             p = ngx_snprintf(p, buf + sizeof(buf) - p, "; includeSubDomains");
         }
 
+#if (NGX_CONDITION)
+        if (hsts_preload == 1) {
+#else
         if (slcf->hsts_preload == 1) {
+#endif
             p = ngx_snprintf(p, buf + sizeof(buf) - p, "; preload");
         }
 
@@ -304,10 +439,17 @@ ngx_http_security_headers_filter(ngx_http_request_t *r)
 
 #endif
 
+#if (NGX_HTTP_SSL)
 security_headers:
+#endif
 
     /* add security headers other than hsts */
+#if (NGX_CONDITION)
+    enable = ngx_http_get_conditional_flag_value(r, slcf->enable);
+    if (!enable) {
+#else
     if (!slcf->enable) {
+#endif
         return ngx_http_next_header_filter(r);
     }
 
@@ -315,13 +457,28 @@ security_headers:
         return ngx_http_next_header_filter(r);
     }
 
+#if (NGX_CONDITION)
+    xss = ngx_http_get_conditional_enum_value(r, slcf->xss);
+    fo = ngx_http_get_conditional_enum_value(r, slcf->fo);
+    rp = ngx_http_get_conditional_enum_value(r, slcf->rp);
+    xo = ngx_http_get_conditional_enum_value(r, slcf->xo);
+#endif
+
     /* add X-Content-Type-Options */
     if (r->headers_out.status == NGX_HTTP_OK
+#if (NGX_CONDITION)
+        && NGX_HTTP_SECURITY_HEADER_BYPASS != xo)
+#else
         && NGX_HTTP_SECURITY_HEADER_BYPASS != slcf->xo)
+#endif
     {
         ngx_str_set(&key, "X-Content-Type-Options");
 
+#if (NGX_CONDITION)
+        if (xo == NGX_HTTP_XO_HEADER_NOSNIFF) {
+#else
         if (slcf->xo == NGX_HTTP_XO_HEADER_NOSNIFF) {
+#endif
             ngx_str_set(&val, "nosniff");
 
         } else {
@@ -333,11 +490,19 @@ security_headers:
 
     /* add X-XSS-Protection */
     if (r->headers_out.status != NGX_HTTP_NOT_MODIFIED
+#if (NGX_CONDITION)
+        && NGX_HTTP_SECURITY_HEADER_BYPASS != xss)
+#else
         && NGX_HTTP_SECURITY_HEADER_BYPASS != slcf->xss)
+#endif
     {
         ngx_str_set(&key, "X-XSS-Protection");
 
+#if (NGX_CONDITION)
+        switch (xss) {
+#else
         switch (slcf->xss) {
+#endif
         case NGX_HTTP_XSS_HEADER_OFF:
             ngx_str_set(&val, "0");
             break;
@@ -359,11 +524,19 @@ security_headers:
 
     /* add X-Frame-Options */
     if (r->headers_out.status != NGX_HTTP_NOT_MODIFIED
+#if (NGX_CONDITION)
+        && NGX_HTTP_SECURITY_HEADER_BYPASS != fo)
+#else
         && NGX_HTTP_SECURITY_HEADER_BYPASS != slcf->fo)
+#endif
     {
         ngx_str_set(&key, "X-Frame-Options");
 
+#if (NGX_CONDITION)
+        switch (fo) {
+#else
         switch (slcf->fo) {
+#endif
         case NGX_HTTP_FO_HEADER_SAME:
             ngx_str_set(&val, "SAMEORIGIN");
             break;
@@ -381,11 +554,19 @@ security_headers:
 
     /* add Referrer-Policy */
     if (r->headers_out.status != NGX_HTTP_NOT_MODIFIED
+#if (NGX_CONDITION)
+        && NGX_HTTP_SECURITY_HEADER_BYPASS != rp)
+#else
         && NGX_HTTP_SECURITY_HEADER_BYPASS != slcf->rp)
+#endif
     {
         ngx_str_set(&key, "Referrer-Policy");
 
+#if (NGX_CONDITION)
+        switch (rp) {
+#else
         switch (slcf->rp) {
+#endif
 
         case NGX_HTTP_RP_HEADER_STRICT_ORIG_WHEN_CROSS:
             ngx_str_set(&val, "strict-origin-when-cross-origin");
@@ -441,18 +622,20 @@ ngx_http_security_headers_create_loc_conf(ngx_conf_t *cf)
         return NULL;
     }
 
-#if (NGX_HTTP_SSL)
+#if !(NGX_CONDITION) && (NGX_HTTP_SSL)
     conf->hsts = NGX_CONF_UNSET_UINT;
     conf->hsts_max_age = NGX_CONF_UNSET;
     conf->hsts_includesubdomains = NGX_CONF_UNSET;
     conf->hsts_preload = NGX_CONF_UNSET_UINT;
 #endif
 
+#if !(NGX_CONDITION)
     conf->enable = NGX_CONF_UNSET;
     conf->xss = NGX_CONF_UNSET_UINT;
     conf->fo = NGX_CONF_UNSET_UINT;
     conf->rp = NGX_CONF_UNSET_UINT;
     conf->xo = NGX_CONF_UNSET_UINT;
+#endif
 
     return conf;
 }
@@ -465,6 +648,72 @@ ngx_http_security_headers_merge_loc_conf(ngx_conf_t *cf, void *parent,
     ngx_http_security_headers_loc_conf_t *prev = parent;
     ngx_http_security_headers_loc_conf_t *conf = child;
 
+#if (NGX_CONDITION)
+#if (NGX_HTTP_SSL)
+    if (ngx_conf_merge_conditional_enum_value(cf, &conf->hsts, prev->hsts,
+                                              NGX_HTTP_SECURITY_HEADER_BYPASS)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_flag_value(cf,
+            &conf->hsts_includesubdomains, prev->hsts_includesubdomains, 0)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_flag_value(cf, &conf->hsts_preload,
+                                              prev->hsts_preload, 0)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_sec_value(cf, &conf->hsts_max_age,
+                                             prev->hsts_max_age, 31536000)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+#endif
+
+    if (ngx_conf_merge_conditional_flag_value(cf, &conf->enable,
+                                              prev->enable, 0)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_enum_value(cf, &conf->xss, prev->xss,
+                                              NGX_HTTP_XSS_HEADER_OFF)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_enum_value(cf, &conf->fo, prev->fo,
+                                              NGX_HTTP_FO_HEADER_SAME)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_enum_value(cf, &conf->rp, prev->rp,
+            NGX_HTTP_RP_HEADER_STRICT_ORIG_WHEN_CROSS)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+
+    if (ngx_conf_merge_conditional_enum_value(cf, &conf->xo, prev->xo,
+                                              NGX_HTTP_XO_HEADER_NOSNIFF)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
+#else
 #if (NGX_HTTP_SSL)
     ngx_conf_merge_uint_value(conf->hsts, prev->hsts,
                          NGX_HTTP_SECURITY_HEADER_BYPASS);
@@ -476,14 +725,6 @@ ngx_http_security_headers_merge_loc_conf(ngx_conf_t *cf, void *parent,
 
     ngx_conf_merge_value(conf->enable, prev->enable, 0);
 
-    if (ngx_http_merge_types(cf, &conf->types_keys, &conf->types,
-                             &prev->types_keys, &prev->types,
-                             ngx_http_security_headers_default_types)
-        != NGX_OK)
-    {
-        return NGX_CONF_ERROR;
-    }
-
     ngx_conf_merge_uint_value(conf->xss, prev->xss,
                               NGX_HTTP_XSS_HEADER_OFF);
     ngx_conf_merge_uint_value(conf->fo, prev->fo,
@@ -492,6 +733,15 @@ ngx_http_security_headers_merge_loc_conf(ngx_conf_t *cf, void *parent,
                               NGX_HTTP_RP_HEADER_STRICT_ORIG_WHEN_CROSS);
     ngx_conf_merge_uint_value(conf->xo, prev->xo,
                               NGX_HTTP_XO_HEADER_NOSNIFF);
+#endif
+
+    if (ngx_http_merge_types(cf, &conf->types_keys, &conf->types,
+                             &prev->types_keys, &prev->types,
+                             ngx_http_security_headers_default_types)
+        != NGX_OK)
+    {
+        return NGX_CONF_ERROR;
+    }
 
     return NGX_CONF_OK;
 }
