@@ -72,7 +72,7 @@ typedef struct {
 
 #if (NGX_HTTP_SSL)
 
-static ngx_conf_enum_t  ngx_http_hsts[] = { 
+static ngx_conf_enum_t  ngx_http_hsts[] = {
     { ngx_string("on"),     NGX_HTTP_HSTS_ON },
     { ngx_string("bypass"), NGX_HTTP_SECURITY_HEADER_BYPASS },
     { ngx_string("clear"),  NGX_HTTP_SECURITY_HEADER_CLEAR },
@@ -325,14 +325,14 @@ static ngx_http_module_t  ngx_http_security_headers_filter_module_ctx = {
     NULL,                                         /* preconfiguration */
     ngx_http_security_headers_init,               /* postconfiguration */
 
-    NULL,                                         /* create main configuration */
-    NULL,                                         /* init main configuration */
+    NULL,                                         /* create main conf */
+    NULL,                                         /* init main conf */
 
-    NULL,                                         /* create server configuration */
-    NULL,                                         /* merge server configuration */
+    NULL,                                         /* create server conf */
+    NULL,                                         /* merge server conf */
 
-    ngx_http_security_headers_create_loc_conf,    /* create location config */
-    ngx_http_security_headers_merge_loc_conf      /* merge location config */
+    ngx_http_security_headers_create_loc_conf,    /* create location conf */
+    ngx_http_security_headers_merge_loc_conf      /* merge location conf */
 };
 
 
@@ -367,15 +367,13 @@ ngx_http_security_headers_filter(ngx_http_request_t *r)
 #if (NGX_HTTP_SSL)
     u_char             buf[128];
     u_char            *p;
+    time_t             hsts_max_age;
+    ngx_flag_t         hsts_includesubdomains, hsts_preload;
+    ngx_uint_t         hsts;
 #endif
+    ngx_flag_t         enable;
 #if (NGX_CONDITION)
-    ngx_flag_t                           enable;
-    ngx_uint_t                           xss, fo, rp, xo;
-#if (NGX_HTTP_SSL)
-    time_t                               hsts_max_age;
-    ngx_flag_t                           hsts_includesubdomains, hsts_preload;
-    ngx_uint_t                           hsts;
-#endif
+    ngx_uint_t         xss, fo, rp, xo;
 #endif
 
     slcf = ngx_http_get_module_loc_conf(r,
@@ -386,45 +384,33 @@ ngx_http_security_headers_filter(ngx_http_request_t *r)
 #if (NGX_CONDITION)
     hsts = ngx_http_get_conditional_enum_value(r, slcf->hsts);
     hsts_max_age = ngx_http_get_conditional_sec_value(r, slcf->hsts_max_age);
-    hsts_includesubdomains = ngx_http_get_conditional_flag_value(r,
-                                 slcf->hsts_includesubdomains);
+    hsts_includesubdomains = ngx_http_get_conditional_flag_value(r, 
+                                                 slcf->hsts_includesubdomains);
     hsts_preload = ngx_http_get_conditional_flag_value(r,
-                       slcf->hsts_preload);
+                                                       slcf->hsts_preload);
+#else
+    hsts = slcf->hsts;
+    hsts_max_age = slcf->hsts_max_age;
+    hsts_includesubdomains = slcf->hsts_includesubdomains;
+    hsts_preload = slcf->hsts_preload;
+#endif
 
     if (hsts == NGX_HTTP_SECURITY_HEADER_BYPASS) {
-#else
-    if (slcf->hsts == NGX_HTTP_SECURITY_HEADER_BYPASS) {
-#endif
         goto security_headers;
     }
 
     ngx_str_set(&key, "Strict-Transport-Security");
 
-#if (NGX_CONDITION)
     if (hsts == NGX_HTTP_HSTS_ON && r->connection->ssl) {
-#else
-    if (slcf->hsts == NGX_HTTP_HSTS_ON && r->connection->ssl) {
-#endif
         p = buf;
-#if (NGX_CONDITION)
         p = ngx_snprintf(p, buf + sizeof(buf) - p, "max-age=%T",
-            hsts_max_age);
+                         hsts_max_age);
 
         if (hsts_includesubdomains == 1) {
-#else
-        p = ngx_snprintf(p, buf + sizeof(buf) - p, "max-age=%T",
-            slcf->hsts_max_age);
-
-        if (slcf->hsts_includesubdomains == 1) {
-#endif
             p = ngx_snprintf(p, buf + sizeof(buf) - p, "; includeSubDomains");
         }
 
-#if (NGX_CONDITION)
         if (hsts_preload == 1) {
-#else
-        if (slcf->hsts_preload == 1) {
-#endif
             p = ngx_snprintf(p, buf + sizeof(buf) - p, "; preload");
         }
 
@@ -439,17 +425,17 @@ ngx_http_security_headers_filter(ngx_http_request_t *r)
 
 #endif
 
-#if (NGX_HTTP_SSL)
 security_headers:
-#endif
+
 
     /* add security headers other than hsts */
 #if (NGX_CONDITION)
     enable = ngx_http_get_conditional_flag_value(r, slcf->enable);
-    if (!enable) {
 #else
-    if (!slcf->enable) {
+    enable = slcf->enable;
 #endif
+
+    if (!enable) {
         return ngx_http_next_header_filter(r);
     }
 
@@ -548,7 +534,7 @@ security_headers:
         default:
             ngx_str_null(&val);
         }
-            
+
         ngx_http_security_headers_set_by_search(r, &key, &val);
     }
 
@@ -716,7 +702,7 @@ ngx_http_security_headers_merge_loc_conf(ngx_conf_t *cf, void *parent,
 #else
 #if (NGX_HTTP_SSL)
     ngx_conf_merge_uint_value(conf->hsts, prev->hsts,
-                         NGX_HTTP_SECURITY_HEADER_BYPASS);
+                              NGX_HTTP_SECURITY_HEADER_BYPASS);
     ngx_conf_merge_value(conf->hsts_includesubdomains,
         prev->hsts_includesubdomains, 0);
     ngx_conf_merge_value(conf->hsts_preload, prev->hsts_preload, 0);
