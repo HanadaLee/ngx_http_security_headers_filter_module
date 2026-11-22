@@ -607,14 +607,14 @@ ngx_http_security_headers_create_loc_conf(ngx_conf_t *cf)
         return NULL;
     }
 
-#if !(NGX_EXPR) && (NGX_HTTP_SSL)
+#if !(NGX_EXPR)
+#if (NGX_HTTP_SSL)
     conf->hsts = NGX_CONF_UNSET_UINT;
     conf->hsts_max_age = NGX_CONF_UNSET;
     conf->hsts_includesubdomains = NGX_CONF_UNSET;
     conf->hsts_preload = NGX_CONF_UNSET_UINT;
 #endif
 
-#if !(NGX_EXPR)
     conf->enable = NGX_CONF_UNSET;
     conf->xss = NGX_CONF_UNSET_UINT;
     conf->fo = NGX_CONF_UNSET_UINT;
